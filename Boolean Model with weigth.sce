@@ -1,5 +1,6 @@
 // Ruan da Fonseca Ramos
 // Modelo booleano: Matriz de incidência com contagem de frequência
+// update 1: adicionado contagem de peso usando sistema TF-IDF
 
 // documents matrix, already stemmized
 M=['O peã e o caval são pec de xadrez. O caval é o melhor do jog.';
@@ -8,7 +9,8 @@ M=['O peã e o caval são pec de xadrez. O caval é o melhor do jog.';
 'Caval de rodei!';
 'Polic o jog no xadrez.';
 'caval caval caval caval';
-'O rat roe roup do rei de roma que era xadrez com um caval']
+'O rat roe roup do rei de roma que era xadrez com um caval';
+'O menin jog o caval pela janel']
 
 stopwords=['a'; 'o'; 'e'; 'é'; 'de'; 'do'; 'no'; 'são']
 

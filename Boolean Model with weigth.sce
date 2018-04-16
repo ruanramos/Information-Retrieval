@@ -1,16 +1,17 @@
 // Ruan da Fonseca Ramos
-// Modelo booleano: Matriz de incidência com contagem de frequência
-// update 1: adicionado contagem de peso usando sistema TF-IDF
+// Modelo booleano: Matriz de incidência com contagem de frequência (documentos e pesquisa)
+// update 1: adicionado contagem de peso para os termos usando sistema TF-IDF (documentos e pesquisa)
+
 
 // documents matrix, already stemmized
 M=['O peã e o caval são pec de xadrez. O caval é o melhor do jog.';
 'A jog envolv a torr, o peã e o rei.';
 'O peã lac o boi';
 'Caval de rodei!';
-'Polic o jog no xadrez.';
-'caval caval caval caval';
-'O rat roe roup do rei de roma que era xadrez com um caval';
-'O menin jog o caval pela janel']
+'Polic o jog no xadrez.']
+//'caval caval caval caval';
+//'O rat roe roup do rei de roma que era xadrez com um caval';
+//'O menin jog o caval pela janel']
 
 stopwords=['a'; 'o'; 'e'; 'é'; 'de'; 'do'; 'no'; 'são']
 
@@ -53,7 +54,7 @@ end
 // remove repeated tokens
 myTokens = unique(myTokens)
 
-// construct the incidence matrix using the M matrix of documents and the tokens
+// construct the incidence matrix of documents using the M matrix of documents and the tokens
 numberTokens = size(myTokens, 'r')
 incidenceMatrix = zeros(numberTokens, numberOfDocuments)
 apearences = 0
@@ -65,14 +66,30 @@ for i=1:numberTokens
                 apearences = apearences + 1
             end
         end
-        //x = find(documentTokens == myTokens(i))
         incidenceMatrix(i,j) = apearences
         apearences = 0
     end
     j = 1 
 end
 
-// getting the rows of the incidence matrix we will need
+// construct the incidence matrix of the search using the M matrix of documents and the tokens
+searchIncidenceMatrix = zeros(numberTokens, 1)
+apearences = 0
+searchTokens = tokens(q , separators) // search tokens
+for i=1:numberTokens
+    for j=1:size(searchTokens,'r')
+        if myTokens(i) == searchTokens(j) then
+            apearences = apearences + 1
+        end
+     end
+    searchIncidenceMatrix(i,1) = apearences
+    apearences = 0
+j = 1 
+end
+
+// ----------------- BOOLEAN MODEL START --------------------
+
+// getting the rows of the incidence matrix we will need for boolean model
 sizeq = size(qTokens, 'r')
 rows = []
 for i=1:sizeq
@@ -89,7 +106,6 @@ end
 // now rows contais the incidenceMatrix rows we need to use for the question
 
 // here we normalize the rows so it will only have 0's and 1's
-
 for i=1:size(rows, 'r')
     for j=1:numberOfDocuments
         if rows(i,j) > 1 then
@@ -98,7 +114,7 @@ for i=1:size(rows, 'r')
     end
 end
 
-// here we make the bit operations
+// here we make the bit operations of the boolean model
 documentsAnd = rows(1,:)
 documentsOr = rows(1,:)
 
@@ -108,6 +124,9 @@ end
 for i=2:size(rows, 'r')
     documentsOr = bitor(documentsOr, rows(i,:))
 end
+
+
+// ----------------- BOOLEAN MODEL END --------------------
 
 // printing the final incidence matrix and the final result of the search
 printf("\n--------------------------------INCIDENCE MATRIX--------------------------------\n")
@@ -148,19 +167,18 @@ else // question has only one word
     end
 end
 
-printf("\n-----------------------------TF-IDF PONDERATION MATRIX--------------------------------\n")
-
 // implementing the TF-IDF ponderation scheme
 // using log as log to base 2
 // For the terms on the docs: wi,j = (1 + log(fi,j)) * log(N/ni)
-// For the terms on the question: wi,j = (1 + log(fi,q)) * log(N/ni)
+// For the terms on the question: wi,q = (1 + log(fi,q)) * log(N/ni)
 // wi,j = final value of the term; N = total number of documents;
 // fi,j = frequency of term i on document j; fi,q = frequency of term i on question q;
 // ni = number of documents that have the term i
 
+printf("\n-------------------------TF-IDF PONDERATION MATRIX FOR THE DOCUMENTS---------------------------\n")
 
-// now we create the ponderation matrix and calculate each ponderation wi,j
-ponderationMatrix = incidenceMatrix
+// now we create the ponderation matrix for the documents and calculate each ponderation wi,j
+ponderationMatrixDocuments = incidenceMatrix
 w = 0
 for i=1:numberTokens
     printf('%s\t\t', myTokens(i))
@@ -178,9 +196,32 @@ for i=1:numberTokens
         else
             w = 0
         end
-        ponderationMatrix(i,j) = w
+        ponderationMatrixDocuments(i,j) = w
         // printing the ponderation matrix
-        printf('%.4f  ', ponderationMatrix(i,j))
+        printf('%.4f  ', ponderationMatrixDocuments(i,j))
     end
+    printf("\n")
+end
+
+printf("\n-------------------------TF-IDF PONDERATION MATRIX FOR THE SEARCH---------------------------\n")
+
+ponderationMatrixSearch = searchIncidenceMatrix
+wq = 0
+for i=1:numberTokens
+    printf('%s\t\t', myTokens(i))
+    // calculating ni for each term ki
+    searchFrequency = 0
+    if searchIncidenceMatrix(i,1) > 0 then
+        searchFrequency = searchFrequency + 1
+    end
+    // calculating wi,q for each term ki
+    if searchIncidenceMatrix(i,1) > 0 then
+        wq = ((log2(searchIncidenceMatrix(i,1))) + 1 ) * (log2(numberOfDocuments / searchFrequency))
+    else
+        wq = 0
+    end
+    ponderationMatrixSearch(i,1) = wq
+    // printing the ponderation matrix
+    printf('%.4f  ', ponderationMatrixSearch(i,1))
     printf("\n")
 end

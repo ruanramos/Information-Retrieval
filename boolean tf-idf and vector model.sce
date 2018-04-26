@@ -17,7 +17,7 @@ stopwords=['a'; 'o'; 'e'; 'é'; 'de'; 'do'; 'no'; 'são']
 
 // the search, already stemmized and suposing you only make questions with
 // words that are on the index or it get's ignored
-q='boi xadrez';
+q='xadrez peã caval torr';
 
 // separators for getting the tokens
 separators=[' ';',';'.';'!';'?'; '('; ')']
@@ -211,8 +211,10 @@ for i=1:numberTokens
     printf('%s\t\t', myTokens(i))
     // calculating ni for each term ki
     searchFrequency = 0
-    if searchIncidenceMatrix(i,1) > 0 then
-        searchFrequency = searchFrequency + 1
+    for j=1:numberOfDocuments
+        if incidenceMatrix(i,j) > 0 then
+            searchFrequency = searchFrequency + 1
+        end
     end
     // calculating wi,q for each term ki
     if searchIncidenceMatrix(i,1) > 0 then
